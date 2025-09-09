@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  push:
+    branches: ["*"]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: chornberger-c2c/mockup-webshop
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      packages: write
+      attestations: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - run: |
+          git config --global user.email "christopher.hornberger@gmail.com"
+          git config --global user.name "Christopher Hornberger"
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker build
+        run: |
+          docker build -f Dockerfile -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+
+      - name: Semantic Release
+        if: github.ref_name == 'dev' || github.ref_name == 'main'
+        id: semantic
+        uses: cycjimmy/semantic-release-action@v4.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          semantic_version: 19.0.5
+          extra_plugins: |
+            @semantic-release/changelog
+            @semantic-release/git
+            @semantic-release/release-notes-generator@10.0.3
+
+      - name: Update Changelog
+        if: github.ref_name == 'main' && steps.semantic.outputs.new_release_published == 'true'
+        run: |
+          git add docs/CHANGELOG.md
+          git commit -m "docs(CHANGELOG): update [skip ci]"
+          git push -f
+
+      - name: Release docker image
+        if: ${{ (github.ref_name == 'dev' || github.ref_name == 'main') && (steps.semantic.outputs.new_release_published == 'true') }}
+        run: |
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semantic.outputs.new_release_version }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semantic.outputs.new_release_version }}

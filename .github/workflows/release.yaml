@@ -66,3 +66,31 @@ jobs:
         run: |
           docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semantic.outputs.new_release_version }}
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semantic.outputs.new_release_version }}
+
+      - name: Set version from release
+        run: |
+          echo "VERSION=${{ steps.semantic.outputs.new_release_version }} >> $GITHUB_ENV
+          echo "Using version $VERSION"
+
+      - name: Clone target repo
+        env:
+          TARGET_REPO: "github.com/chornberger-c2c/mockup-webshop-helm.git"
+          GIT_AUTH_TOKEN: ${{ secrets.TOKEN_MOCKUP_HELM }}
+        run: |
+          git clone https://x-access-token:${GIT_AUTH_TOKEN}@${TARGET_REPO} repo
+          cd repo
+          git checkout main
+
+      - name: Update Helm values.yaml
+        run: |
+          cd repo/charts/mockup-webshop
+          sed -i "s|tag: .*|tag: \"${{ env.VERSION }}\"|" values.yaml
+
+      - name: Commit & push updated values
+        run: |
+          cd repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add values.yaml
+          git commit -m "chore: update image tag to ${{ env.VERSION }}"
+          git push origin main

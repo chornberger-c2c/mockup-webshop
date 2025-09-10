@@ -83,6 +83,7 @@ jobs:
 
       - name: Update Helm values.yaml
         run: |
+          cd repo
           sed -i "s|tag: .*|tag: \"${{ env.VERSION }}\"|" values.yaml
 
       - name: Commit & push updated values

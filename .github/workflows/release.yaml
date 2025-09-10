@@ -83,7 +83,6 @@ jobs:
 
       - name: Update Helm values.yaml
         run: |
-          cd repo/charts/mockup-webshop
           sed -i "s|tag: .*|tag: \"${{ env.VERSION }}\"|" values.yaml
 
       - name: Commit & push updated values

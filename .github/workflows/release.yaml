@@ -69,7 +69,7 @@ jobs:
 
       - name: Set version from release
         run: |
-          echo "VERSION=${{ steps.semantic.outputs.new_release_version }} >> $GITHUB_ENV
+          echo "VERSION=${{ steps.semantic.outputs.new_release_version }}" >> $GITHUB_ENV
           echo "Using version $VERSION"
 
       - name: Clone target repo

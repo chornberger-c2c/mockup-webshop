@@ -1,3 +1,15 @@
+# [1.5.0](https://github.com/chornberger-c2c/mockup-webshop/compare/v1.4.0...v1.5.0) (2025-09-17)
+
+
+### Documentation
+
+* **CHANGELOG:** update [skip ci] ([05187d9](https://github.com/chornberger-c2c/mockup-webshop/commit/))
+
+
+### Features
+
+* Update index.html ([3b1b3db](https://github.com/chornberger-c2c/mockup-webshop/commit/))
+
 # [1.4.0](https://github.com/chornberger-c2c/mockup-webshop/compare/v1.3.0...v1.4.0) (2025-09-16)
 
 
